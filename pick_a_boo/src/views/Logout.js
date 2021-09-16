@@ -1,20 +1,20 @@
-import React, { useEffect } from 'react'
+import React, { Component } from 'react'
 import UserContext from '../context/UserContext';
+import { Redirect } from 'react-router-dom'
 
-function Logout() {
-    const {user, setUser} = UserContext(UserContext)
+export default class Logout extends Component {
+    static contextType = UserContext
 
-    useEffect(() => {
-        console.log(user)
+    componentDidMount() {
+        const { setUser } = this.context
         setUser({})
-    },[])
-
-    return (
-        <div>      
-            Thanks for your visit! See you soon!
-            /*<Redirect to={{pathname: '/'}}/> */     
-        </div>
-    )
+        localStorage.clear()
+    }
+    render() {
+        return (
+            <div>
+                <Redirect to={{pathname: '/'}}/>
+            </div>
+        )
+    }
 }
-
-export default Logout
