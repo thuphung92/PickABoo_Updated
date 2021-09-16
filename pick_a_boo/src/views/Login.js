@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import * as Yup from 'yup';
 import {Formik, Form, Field} from 'formik';
 import { Col, Button, Alert} from 'react-bootstrap';
-import { Link, Redirect } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { getToken } from '../api/apiClient';
 import UserContext from '../context/UserContext';
 
@@ -17,7 +17,7 @@ const loginFormInitialValues={
     password:''
 }
 
-export default class Login extends Component {
+class Login extends Component {
     
     constructor(){
         super();
@@ -25,6 +25,7 @@ export default class Login extends Component {
             badLogin:false,
             serverError:false,
             redirect:false,
+            user: {}
         }
     }
     
@@ -34,18 +35,22 @@ export default class Login extends Component {
     }
     
     handleSubmit=async ({email, password})=>{     
-        try {
-            const res = await getToken(email, password);
-            this.context.setUser(res)
-            console.log(this.context.user)
-    
-            this.setState({redirect:true})
-        }
-        catch(err) {
-            if (err.status ===401){return this.setState({badLogin:true, serverError:false})};
-            if (err.status ===500){return this.setState({badLogin:false, serverError:true})};
-            return
-        }
+        const res = await getToken(email, password);
+
+        if (res === 401){return this.setState({badLogin:true, serverError:false})};
+        if (res === 500){return this.setState({badLogin:false, serverError:true})};
+
+        this.context.setUser(res)
+        //console.log(this.context.user)
+        this.setState({redirect:true})
+        localStorage.setItem('user', JSON.stringify(res))
+        
+        // redirect after login
+        let intended = this.props.history.location.state;
+        if (intended) {this.props.history.push(intended.from)
+        } else {this.props.history.push('/')}
+        
+
     }
 
     render() {
@@ -66,6 +71,7 @@ export default class Login extends Component {
                 borderRadius: '1rem',
             }
         }
+        const desiredLocation = this.props.history.location.state;
         return (
             <div>                
                 {this.state.badLogin?<Alert variant="danger">Invalid Email or Password</Alert>:''}
@@ -74,12 +80,12 @@ export default class Login extends Component {
                 <div className="wrapper" style={styles.wrapper}>
                     <div className="container" style={styles.container}> 
                                                                   
-                        {this.state.redirect ? <Redirect to={{pathname:"/" }}/>:''}
+                        
 
                             <Formik 
                                 initialValues={loginFormInitialValues}
                                 validationSchema={loginFormSchema}
-                                onSubmit={(values)=>{console.log(values); this.handleSubmit(values)}}
+                                onSubmit={(values)=>{this.handleSubmit(values)}}
                                 >
 
                                 {({errors, touched})=>(
@@ -113,3 +119,5 @@ export default class Login extends Component {
         )
     }
 }
+
+export default withRouter(Login)
