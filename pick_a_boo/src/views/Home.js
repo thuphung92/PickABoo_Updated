@@ -32,7 +32,8 @@ const Home = () => {
                 location: `${location}`,
                 breed: `${breed}`,
                 status: 'adoptable',
-                sort: 'distance'           
+                sort: 'distance',
+                limit: 100           
             });
             setPets(resp.data.animals);
         }
